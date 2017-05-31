@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="description" content="Spinning cube example">
+    <meta charset="utf-8">
+    <title>WebGL cube drawn w/indexed vertex list</title>
+    <script src = "main.js"></script>
+    <script id="vs" type="not-js">
+      attribute vec3 vPosition;
+      attribute vec3 vColor;
+      attribute vec3 vNormal;
+      varying vec3 fColor;
+      uniform mat4 uMVP;
+      uniform mat4 uNormalMatrix;
+      varying vec3 fNormal;
+      varying vec3 fPosition;
+      varying vec3 worldPos;
+      varying vec3 localPos;
+
+      void main(void) {
+        fNormal = normalize( ( uNormalMatrix * vec4(vNormal, 0.0) ).xyz );
+         vec4 pos= uMVP * vec4(vPosition, 1.0);
+         fPosition = pos.xyz;
+         worldPos = pos.xyz;
+         localPos = vPosition;
+         gl_Position = pos;
+	    fColor = vColor;
+      }
+    </script>
+
+    <script id="fs" type="not-js">
+      precision highp float;
+      varying vec3 worldPos;
+      varying vec3 localPos;
+      varying vec3 fNormal;
+      varying vec3 fColor;
+      varying vec3 fPosition;
+      //const vec3 dir = vec3(0,1,0);//(-1.0,1.0,1.0); // high noon
+      const float ambient_coeff   = 0.55;
+      const float specular_coeff  = 5.0;
+      const float specular_exp    = 5.07;
+      const vec3  light_direction = vec3(-1.0,1.0,1.0); // stationary light
+      const vec3  light_color     = vec3(1.0,1.0,1.0);
+
+      void main(void) {
+  vec3 l = normalize(light_direction);
+  vec3 n = normalize(fNormal);
+  vec3 e = normalize(-fPosition);
+  vec3 h = normalize (e+l);
+
+    vec3 ambient_color  = ambient_coeff  * fColor;
+  vec3 specular_color = specular_coeff * pow(max(0.0,dot(n,h)),specular_exp) * (light_color);
+      float diffuse = 0.15 + 0.7*dot(n, l);
+	     gl_FragColor = vec4(ambient_color + diffuse + specular_color, 1.0);
+      }
+    </script>
+
+</head>
+
+<body onload="start()">
+<canvas id="mycanvas" width="500" height="500"></canvas><br>
+Tilt Cam: <input id="slider1" type="range" min="-300" max="300" />
+Zoom: <input id="slider2" type="range" min="100" max="800" />
+<script src="http://graphics.cs.wisc.edu/JS/twgl-full.min.js"></script>
+</body>
+
+</html>
